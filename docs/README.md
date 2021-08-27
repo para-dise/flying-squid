@@ -10,6 +10,22 @@ flying-squid
 
 Create Minecraft servers with a powerful, stable, and high level JavaScript API.
 
+## Extended Features
+* Support for Regex when using `onItemPlace`, allowing any block to be matched.
+```
+    serv.on('asap', () => {
+        serv.onItemPlace('.*', ({player, placedPosition}) => { // regex handler, cancels any block placed
+            const block = player.world.sync.getBlock(placedPosition);
+            return {id: block.type, data: block.metadata}
+        }, true, true);
+
+        serv.onItemPlace('dirt', ({player, placedPosition}) => { // while retaining support for the classic method
+            const block = player.world.sync.getBlock(placedPosition);
+            return {id: block.type, data: block.metadata}
+        });
+    });
+```
+
 ## Features
 * Support for Minecraft 1.8, 1.9, 1.10, 1.11, 1.12, 1.13, 1.14, 1.15 and 1.16
 * Players can see the world
