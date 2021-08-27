@@ -13,10 +13,22 @@ const materialToSound = {
 module.exports.server = (serv, { version }) => {
   const mcData = require('minecraft-data')(version)
 
-  const itemPlaceHandlers = new Map()
+  const itemPlaceHandlers = [];
+
   serv.placeItem = (data) => {
-    const handler = itemPlaceHandlers.get(data.item.type)
-    return handler ? handler(data) : { id: data.item.type, data: data.item.metadata }
+    for(let handler of itemPlaceHandlers) {
+        if(handler.isRegex) {
+            if(handler.name.test(data.item.name)) { // if regex matches internal item name
+              return handler.handler ? handler.handler(data) : { id: data.item.type, data: data.item.metadata }
+            }
+        } else {
+            if(handler.name == data.item.type) { // if ID matches item ID
+                return handler.handler ? handler.handler(data) : { id: data.item.type, data: data.item.metadata }
+            }
+        }
+    }
+
+    return { id: data.item.type, data: data.item.metadata }; // in case no handlers are fired
   }
 
   /**
@@ -25,13 +37,15 @@ module.exports.server = (serv, { version }) => {
    * and angle
    * It should return the id and data of the block to place
    */
-  serv.onItemPlace = (name, handler, warn = true) => {
-    let item = mcData.itemsByName[name]
-    if (!item) item = mcData.blocksByName[name]
-    if (itemPlaceHandlers.has(item.id) && warn) {
-      serv.log(`[Warning] onItemPlace handler was registered twice for ${name}`)
+  serv.onItemPlace = (name, handler, warn = true, isRegex = false) => {
+    if(isRegex) {
+        const builtRegex = new RegExp(name);
+        itemPlaceHandlers.push({name: builtRegex, handler, isRegex});
+    } else {
+        let item = mcData.itemsByName[name]
+        if (!item) item = mcData.blocksByName[name]
+        itemPlaceHandlers.push({name: item.id, handler, isRegex});
     }
-    itemPlaceHandlers.set(item.id, handler)
   }
 
   if (serv.supportFeature('theFlattening')) {
