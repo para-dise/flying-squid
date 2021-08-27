@@ -12,7 +12,7 @@ Create Minecraft servers with a powerful, stable, and high level JavaScript API.
 
 ## Extended Features
 * Support for Regex when using `onItemPlace`, allowing any block to be matched.
-```
+```js
     serv.on('asap', () => {
         serv.onItemPlace('.*', ({player, placedPosition}) => { // regex handler, cancels any block placed
             const block = player.world.sync.getBlock(placedPosition);
